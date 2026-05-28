@@ -61,23 +61,25 @@ ProjetoLBC/
 
 ## Estado atual do projeto
 
-**Fase 1 (backend skeleton) — concluída:** projeto Spring Boot inicializado com PostgreSQL via Docker.
+**Fase 2 (domínio e persistência) — concluída:** entidades JPA, migration Flyway e repositories implementados.
 
-| Componente        | Status                          |
-|-------------------|---------------------------------|
-| Documentação      | ✅ Completa                     |
-| Backend skeleton  | ✅ Spring Boot + health check   |
-| PostgreSQL Docker | ✅ docker-compose configurado   |
-| Flyway            | ✅ Migration inicial (V1)       |
-| Frontend          | ⏳ Pendente                     |
+| Componente        | Status                                      |
+|-------------------|---------------------------------------------|
+| Documentação      | ✅ Completa                                 |
+| Backend skeleton  | ✅ Spring Boot + health check               |
+| PostgreSQL Docker | ✅ docker-compose configurado               |
+| Entidades JPA     | ✅ Employee, VacationRequest                |
+| Flyway            | ✅ Tabelas `employees` e `vacation_requests`|
+| Repositories      | ✅ Com query global de overlap              |
+| Frontend          | ⏳ Pendente                                 |
 
 ## Fases de implementação
 
 | Fase | Descrição                                              | Status     |
 |------|--------------------------------------------------------|------------|
-| 1    | Documentação + skeleton backend + PostgreSQL Docker    | ✅ Atual   |
-| 2    | Backend: entidades, migrations Flyway, repositories    | ⏳ Próxima |
-| 3    | Backend: services, controllers, validações, Swagger    | ⏳         |
+| 1    | Documentação + skeleton backend + PostgreSQL Docker    | ✅         |
+| 2    | Backend: entidades, migrations Flyway, repositories    | ✅ Atual   |
+| 3    | Backend: services, controllers, validações, Swagger    | ⏳ Próxima |
 | 4    | Frontend: setup React/Vite, integração com API         | ⏳         |
 | 5    | Docker completo (backend + frontend + PostgreSQL)      | ⏳         |
 | 6    | Testes, refinamentos e documentação final              | ⏳         |
@@ -116,10 +118,39 @@ Conexão para o DBeaver:
 
 ### 2. Rodar o backend
 
+> **Importante:** se você já executou a Fase 1 com a migration antiga (`SELECT 1`), recrie o banco antes de subir o backend:
+>
+> ```bash
+> docker compose down -v
+> docker compose up -d
+> ```
+>
+> Isso evita conflito de checksum do Flyway na `V1__init.sql`.
+
 ```bash
 cd backend
 mvn spring-boot:run
 ```
+
+Na primeira execução após a Fase 2, o Flyway criará as tabelas:
+
+| Tabela             | Descrição                          |
+|--------------------|------------------------------------|
+| `employees`        | Colaboradores e hierarquia (manager) |
+| `vacation_requests`| Pedidos de férias                  |
+
+### Verificar tabelas no DBeaver
+
+1. Conecte ao banco `vacation_db` (credenciais na seção acima).
+2. Expanda **Schemas → public → Tables**.
+3. Confirme a presença de `employees` e `vacation_requests`.
+4. Opcional — inspecionar estrutura:
+   - `employees`: colunas `id`, `name`, `email`, `role`, `manager_id`, `created_at`, `updated_at`
+   - `vacation_requests`: colunas `id`, `employee_id`, `start_date`, `end_date`, `status`, `reason`, `rejection_reason`, `created_at`, `updated_at`
+5. Verificar índices em **Indexes**:
+   - `idx_employees_manager_id`
+   - `idx_vacation_requests_status_dates`
+   - `idx_vacation_requests_employee_id`
 
 Para parar o PostgreSQL:
 
@@ -149,6 +180,15 @@ Resposta esperada do health check:
   "application": "Vacation Management System"
 }
 ```
+
+### 4. Executar testes
+
+```bash
+cd backend
+mvn test
+```
+
+Inclui `contextLoads` e teste de overlap global no `VacationRequestRepository` (H2 em memória).
 
 ### Profile Docker (futuro)
 
