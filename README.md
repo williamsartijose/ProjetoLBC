@@ -61,21 +61,16 @@ ProjetoLBC/
 
 ## Estado atual do projeto
 
-**Fase 3 (DTOs, erros e autenticação simulada) — concluída:** contratos da API, mappers manuais, `GlobalExceptionHandler` e `CurrentUserService`.
+**Fase 4 (services, controllers e regras de negócio) — concluída:** API REST completa para colaboradores e pedidos de férias.
 
 | Componente           | Status                                      |
 |----------------------|---------------------------------------------|
 | Documentação         | ✅ Completa                                 |
-| Backend skeleton     | ✅ Spring Boot + health check               |
-| PostgreSQL Docker    | ✅ docker-compose configurado               |
-| Entidades JPA        | ✅ Employee, VacationRequest                |
-| Flyway               | ✅ Tabelas `employees` e `vacation_requests`|
-| Repositories         | ✅ Com query global de overlap              |
-| DTOs e mappers       | ✅ Employee e VacationRequest               |
-| Tratamento de erros  | ✅ ErrorResponse + GlobalExceptionHandler   |
-| Autenticação simulada| ✅ CurrentUserService (X-User-Id)           |
-| Controllers CRUD     | ⏳ Próxima fase                             |
-| Frontend             | ⏳ Pendente                                 |
+| Backend API REST     | ✅ Employees + Vacation Requests            |
+| Regras de negócio    | ✅ Roles, overlap global, status            |
+| Autenticação simulada| ✅ X-User-Id via CurrentUserService         |
+| Tratamento de erros  | ✅ 400, 403, 404, 409                       |
+| Frontend             | ⏳ Próxima fase                             |
 
 ## Fases de implementação
 
@@ -83,35 +78,68 @@ ProjetoLBC/
 |------|--------------------------------------------------------|------------|
 | 1    | Documentação + skeleton backend + PostgreSQL Docker    | ✅         |
 | 2    | Backend: entidades, migrations Flyway, repositories    | ✅         |
-| 3    | Backend: DTOs, mappers, erros e autenticação simulada  | ✅ Atual   |
-| 4    | Backend: services, controllers CRUD e regras de negócio| ⏳ Próxima |
-| 5    | Frontend: setup React/Vite, integração com API         | ⏳         |
+| 3    | Backend: DTOs, mappers, erros e autenticação simulada  | ✅         |
+| 4    | Backend: services, controllers CRUD e regras de negócio| ✅ Atual   |
+| 5    | Frontend: setup React/Vite, integração com API         | ⏳ Próxima |
 | 6    | Docker completo (backend + frontend + PostgreSQL)      | ⏳         |
 | 7    | Testes, refinamentos e documentação final              | ⏳         |
 
 ## Autenticação simulada (X-User-Id)
 
-Não há login real nesta fase. O usuário autenticado é identificado pelo header HTTP:
+Não há login real. O usuário autenticado é identificado pelo header HTTP:
 
 ```
 X-User-Id: <employee-uuid>
 ```
 
-O `CurrentUserService` lê esse header em cada requisição que exigir autenticação (controllers CRUD na próxima fase), busca o `Employee` correspondente e disponibiliza role e identidade para autorização.
+Todos os endpoints abaixo **exigem** esse header, exceto `GET /api/health`.
+
+O `CurrentUserService` busca o `Employee` correspondente e os services aplicam autorização por role.
 
 | Cenário                         | HTTP Status | Exemplo de mensagem                    |
 |---------------------------------|-------------|----------------------------------------|
 | Header ausente                  | 400         | X-User-Id header is required           |
 | UUID inválido                   | 400         | X-User-Id header must be a valid UUID  |
 | Colaborador inexistente         | 404         | Employee not found                     |
+| Sem permissão para a operação   | 403         | Access denied                          |
 
-O endpoint `GET /api/health` **não exige** o header — serve apenas para verificar se a aplicação está no ar.
+## Endpoints da API
 
-Exemplo (quando os endpoints CRUD existirem):
+### Health (público)
 
-```bash
-curl -H "X-User-Id: <employee-uuid>" http://localhost:8080/api/employees
-```
+| Método | Endpoint        | Descrição              |
+|--------|-----------------|------------------------|
+| GET    | `/api/health`   | Status da aplicação    |
+
+### Employees
+
+| Método | Endpoint               | Descrição                    | Permissão de escrita |
+|--------|------------------------|------------------------------|----------------------|
+| POST   | `/api/employees`       | Criar colaborador            | ADMIN                |
+| GET    | `/api/employees`       | Listar colaboradores         | Autenticado          |
+| GET    | `/api/employees/{id}`  | Detalhes do colaborador      | Autenticado          |
+| PUT    | `/api/employees/{id}`  | Atualizar colaborador        | ADMIN                |
+| DELETE | `/api/employees/{id}`  | Remover colaborador          | ADMIN                |
+
+### Vacation Requests
+
+| Método | Endpoint                                  | Descrição                    |
+|--------|-------------------------------------------|------------------------------|
+| POST   | `/api/vacation-requests`                  | Criar pedido de férias       |
+| GET    | `/api/vacation-requests`                  | Listar pedidos (escopo por role) |
+| GET    | `/api/vacation-requests/{id}`             | Detalhes do pedido           |
+| PUT    | `/api/vacation-requests/{id}`             | Editar pedido (somente PENDING) |
+| POST   | `/api/vacation-requests/{id}/approve`     | Aprovar pedido               |
+| POST   | `/api/vacation-requests/{id}/reject`      | Rejeitar pedido              |
+| POST   | `/api/vacation-requests/{id}/cancel`      | Cancelar pedido              |
+
+**Escopo de listagem de pedidos:**
+
+| Role         | Vê                                                          |
+|--------------|-------------------------------------------------------------|
+| ADMIN        | Todos os pedidos                                            |
+| MANAGER      | Próprios pedidos + pedidos dos colaboradores diretos        |
+| COLLABORATOR | Apenas os próprios pedidos                                  |
 
 ## Padrão de erros da API
 
@@ -120,19 +148,80 @@ Erros são retornados em JSON padronizado via `GlobalExceptionHandler`:
 ```json
 {
   "timestamp": "2026-05-28T12:00:00Z",
-  "status": 404,
-  "error": "Not Found",
-  "message": "Employee not found",
-  "path": "/api/employees/00000000-0000-0000-0000-000000000000"
+  "status": 409,
+  "error": "Conflict",
+  "message": "Vacation period overlaps with an existing request",
+  "path": "/api/vacation-requests"
 }
 ```
 
-| HTTP Status | Quando ocorre                                      | Exceções principais              |
-|-------------|----------------------------------------------------|----------------------------------|
-| 400         | Validação, regra de negócio, body inválido         | `ValidationException`, `BusinessException`, Bean Validation |
-| 403         | Usuário autenticado sem permissão                  | `ForbiddenException`             |
-| 404         | Recurso não encontrado                             | `ResourceNotFoundException`      |
-| 409         | Conflito (ex.: overlap de férias)                  | `OverlapConflictException`       |
+| HTTP Status | Quando ocorre                                      | Exemplos                                              |
+|-------------|----------------------------------------------------|-------------------------------------------------------|
+| 400         | Validação, regra de negócio, body inválido         | Email duplicado, datas inválidas, status inválido     |
+| 403         | Usuário autenticado sem permissão                  | COLLABORATOR tentando criar employee ou aprovar       |
+| 404         | Recurso não encontrado                             | Employee ou vacation request inexistente              |
+| 409         | Conflito de overlap global                         | Pedido com datas sobrepostas a PENDING/APPROVED       |
+
+## Exemplos curl
+
+Substitua `<admin-uuid>`, `<manager-uuid>` e `<collaborator-uuid>` pelos IDs reais do banco.
+
+### Criar colaborador (ADMIN)
+
+```bash
+curl -X POST http://localhost:8080/api/employees \
+  -H "Content-Type: application/json" \
+  -H "X-User-Id: <admin-uuid>" \
+  -d "{\"name\":\"Alice\",\"email\":\"alice@lbc.com\",\"role\":\"COLLABORATOR\",\"managerId\":\"<manager-uuid>\"}"
+```
+
+### Criar pedido de férias (COLLABORATOR — para si mesmo)
+
+```bash
+curl -X POST http://localhost:8080/api/vacation-requests \
+  -H "Content-Type: application/json" \
+  -H "X-User-Id: <collaborator-uuid>" \
+  -d "{\"startDate\":\"2026-06-01\",\"endDate\":\"2026-06-10\",\"reason\":\"Annual leave\"}"
+```
+
+### Criar pedido para outro colaborador (ADMIN)
+
+```bash
+curl -X POST http://localhost:8080/api/vacation-requests \
+  -H "Content-Type: application/json" \
+  -H "X-User-Id: <admin-uuid>" \
+  -d "{\"employeeId\":\"<collaborator-uuid>\",\"startDate\":\"2026-07-01\",\"endDate\":\"2026-07-05\",\"reason\":\"Vacation\"}"
+```
+
+### Aprovar pedido (MANAGER do colaborador)
+
+```bash
+curl -X POST http://localhost:8080/api/vacation-requests/<request-uuid>/approve \
+  -H "X-User-Id: <manager-uuid>"
+```
+
+### Rejeitar pedido
+
+```bash
+curl -X POST http://localhost:8080/api/vacation-requests/<request-uuid>/reject \
+  -H "Content-Type: application/json" \
+  -H "X-User-Id: <manager-uuid>" \
+  -d "{\"rejectionReason\":\"Team coverage required\"}"
+```
+
+### Cancelar pedido aprovado
+
+```bash
+curl -X POST http://localhost:8080/api/vacation-requests/<request-uuid>/cancel \
+  -H "X-User-Id: <collaborator-uuid>"
+```
+
+### Listar pedidos visíveis para o usuário logado
+
+```bash
+curl http://localhost:8080/api/vacation-requests \
+  -H "X-User-Id: <manager-uuid>"
+```
 
 ## Como executar localmente
 
@@ -216,11 +305,13 @@ docker compose down -v
 
 ### 3. Endpoints disponíveis
 
-| Recurso     | URL                                      |
-|-------------|------------------------------------------|
-| Health check| http://localhost:8080/api/health         |
-| Swagger UI  | http://localhost:8080/swagger-ui.html    |
-| OpenAPI JSON| http://localhost:8080/v3/api-docs        |
+| Recurso          | URL                                      |
+|------------------|------------------------------------------|
+| Health check     | http://localhost:8080/api/health         |
+| Employees        | http://localhost:8080/api/employees      |
+| Vacation Requests| http://localhost:8080/api/vacation-requests |
+| Swagger UI       | http://localhost:8080/swagger-ui.html    |
+| OpenAPI JSON     | http://localhost:8080/v3/api-docs        |
 
 Resposta esperada do health check:
 
@@ -231,6 +322,8 @@ Resposta esperada do health check:
 }
 ```
 
+> Endpoints CRUD exigem o header `X-User-Id`. Veja exemplos curl na seção [Exemplos curl](#exemplos-curl).
+
 ### 4. Executar testes
 
 ```bash
@@ -238,7 +331,7 @@ cd backend
 mvn test
 ```
 
-Inclui `contextLoads` e teste de overlap global no `VacationRequestRepository` (H2 em memória).
+Inclui testes de integração das regras de negócio (roles, overlap, aprovação, cancelamento).
 
 ### Profile Docker (futuro)
 

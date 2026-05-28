@@ -14,6 +14,10 @@ public interface VacationRequestRepository extends JpaRepository<VacationRequest
 
     List<VacationRequest> findByEmployee_Id(UUID employeeId);
 
+    List<VacationRequest> findByEmployee_IdIn(List<UUID> employeeIds);
+
+    boolean existsByEmployee_Id(UUID employeeId);
+
     @Query("""
             SELECT COUNT(vr) > 0
             FROM VacationRequest vr
