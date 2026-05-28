@@ -61,28 +61,78 @@ ProjetoLBC/
 
 ## Estado atual do projeto
 
-**Fase 2 (domínio e persistência) — concluída:** entidades JPA, migration Flyway e repositories implementados.
+**Fase 3 (DTOs, erros e autenticação simulada) — concluída:** contratos da API, mappers manuais, `GlobalExceptionHandler` e `CurrentUserService`.
 
-| Componente        | Status                                      |
-|-------------------|---------------------------------------------|
-| Documentação      | ✅ Completa                                 |
-| Backend skeleton  | ✅ Spring Boot + health check               |
-| PostgreSQL Docker | ✅ docker-compose configurado               |
-| Entidades JPA     | ✅ Employee, VacationRequest                |
-| Flyway            | ✅ Tabelas `employees` e `vacation_requests`|
-| Repositories      | ✅ Com query global de overlap              |
-| Frontend          | ⏳ Pendente                                 |
+| Componente           | Status                                      |
+|----------------------|---------------------------------------------|
+| Documentação         | ✅ Completa                                 |
+| Backend skeleton     | ✅ Spring Boot + health check               |
+| PostgreSQL Docker    | ✅ docker-compose configurado               |
+| Entidades JPA        | ✅ Employee, VacationRequest                |
+| Flyway               | ✅ Tabelas `employees` e `vacation_requests`|
+| Repositories         | ✅ Com query global de overlap              |
+| DTOs e mappers       | ✅ Employee e VacationRequest               |
+| Tratamento de erros  | ✅ ErrorResponse + GlobalExceptionHandler   |
+| Autenticação simulada| ✅ CurrentUserService (X-User-Id)           |
+| Controllers CRUD     | ⏳ Próxima fase                             |
+| Frontend             | ⏳ Pendente                                 |
 
 ## Fases de implementação
 
 | Fase | Descrição                                              | Status     |
 |------|--------------------------------------------------------|------------|
 | 1    | Documentação + skeleton backend + PostgreSQL Docker    | ✅         |
-| 2    | Backend: entidades, migrations Flyway, repositories    | ✅ Atual   |
-| 3    | Backend: services, controllers, validações, Swagger    | ⏳ Próxima |
-| 4    | Frontend: setup React/Vite, integração com API         | ⏳         |
-| 5    | Docker completo (backend + frontend + PostgreSQL)      | ⏳         |
-| 6    | Testes, refinamentos e documentação final              | ⏳         |
+| 2    | Backend: entidades, migrations Flyway, repositories    | ✅         |
+| 3    | Backend: DTOs, mappers, erros e autenticação simulada  | ✅ Atual   |
+| 4    | Backend: services, controllers CRUD e regras de negócio| ⏳ Próxima |
+| 5    | Frontend: setup React/Vite, integração com API         | ⏳         |
+| 6    | Docker completo (backend + frontend + PostgreSQL)      | ⏳         |
+| 7    | Testes, refinamentos e documentação final              | ⏳         |
+
+## Autenticação simulada (X-User-Id)
+
+Não há login real nesta fase. O usuário autenticado é identificado pelo header HTTP:
+
+```
+X-User-Id: <employee-uuid>
+```
+
+O `CurrentUserService` lê esse header em cada requisição que exigir autenticação (controllers CRUD na próxima fase), busca o `Employee` correspondente e disponibiliza role e identidade para autorização.
+
+| Cenário                         | HTTP Status | Exemplo de mensagem                    |
+|---------------------------------|-------------|----------------------------------------|
+| Header ausente                  | 400         | X-User-Id header is required           |
+| UUID inválido                   | 400         | X-User-Id header must be a valid UUID  |
+| Colaborador inexistente         | 404         | Employee not found                     |
+
+O endpoint `GET /api/health` **não exige** o header — serve apenas para verificar se a aplicação está no ar.
+
+Exemplo (quando os endpoints CRUD existirem):
+
+```bash
+curl -H "X-User-Id: <employee-uuid>" http://localhost:8080/api/employees
+```
+
+## Padrão de erros da API
+
+Erros são retornados em JSON padronizado via `GlobalExceptionHandler`:
+
+```json
+{
+  "timestamp": "2026-05-28T12:00:00Z",
+  "status": 404,
+  "error": "Not Found",
+  "message": "Employee not found",
+  "path": "/api/employees/00000000-0000-0000-0000-000000000000"
+}
+```
+
+| HTTP Status | Quando ocorre                                      | Exceções principais              |
+|-------------|----------------------------------------------------|----------------------------------|
+| 400         | Validação, regra de negócio, body inválido         | `ValidationException`, `BusinessException`, Bean Validation |
+| 403         | Usuário autenticado sem permissão                  | `ForbiddenException`             |
+| 404         | Recurso não encontrado                             | `ResourceNotFoundException`      |
+| 409         | Conflito (ex.: overlap de férias)                  | `OverlapConflictException`       |
 
 ## Como executar localmente
 
