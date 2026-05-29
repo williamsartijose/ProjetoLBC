@@ -10,15 +10,18 @@ import '@fontsource/roboto/700.css';
 import App from './App';
 import theme from './theme/theme';
 import { queryClient } from './lib/queryClient';
+import { CurrentUserProvider } from './context/CurrentUserContext';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <App />
-      </ThemeProvider>
+      <CurrentUserProvider>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <App />
+        </ThemeProvider>
+      </CurrentUserProvider>
     </QueryClientProvider>
   </React.StrictMode>,
 );
