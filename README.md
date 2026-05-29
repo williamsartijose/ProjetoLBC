@@ -578,3 +578,25 @@ O diagrama UML completo encontra-se disponível para consulta:
 [Astah UML — Complete Diagram (Google Drive)](https://drive.google.com/file/d/1pKdnrIwN7XbSfTA4OpBkPPr-CldUPdyD/view?usp=sharing)
 
 > The UML diagrams were created before implementation as part of the software architecture and domain modeling process.
+
+---
+
+## UX/UI Design
+
+Antes de iniciar a implementação do frontend, foi conduzida uma etapa de **UX/UI Design** no **Figma**, com a criação de um protótipo interativo e de um arquivo de design que serve como referência visual para a construção das telas.
+
+Essa fase teve como objetivo definir o **design system** (cores, tipografia, componentes e espaçamentos), validar os fluxos de navegação e alinhar a experiência do utilizador antes da escrita do código, garantindo consistência visual e reduzindo retrabalho durante o desenvolvimento.
+
+### Interactive Prototype
+
+Protótipo navegável que simula a experiência final da aplicação:
+
+[https://upper-pure-41012202.figma.site/](https://upper-pure-41012202.figma.site/)
+
+### Figma Design File
+
+Arquivo de design com telas, componentes e especificações visuais:
+
+[https://www.figma.com/design/MziEDJuxHJBGJm0fzJ6BpF/Untitled?node-id=1-1432&t=WiT40MWARHQSK7vi-1](https://www.figma.com/design/MziEDJuxHJBGJm0fzJ6BpF/Untitled?node-id=1-1432&t=WiT40MWARHQSK7vi-1)
+
+O frontend será implementado em **React + Vite** seguindo fielmente este design system, com a interface em **Português de Portugal**. O protótipo e o arquivo de design orientam a estrutura de componentes, a hierarquia visual e os padrões de interação adotados nas telas de gestão de colaboradores e de pedidos de férias.
