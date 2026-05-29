@@ -364,3 +364,217 @@ As migrations Flyway são aplicadas automaticamente na inicialização do backen
 ## Documentação adicional
 
 Consulte a pasta `docs/` para detalhes de arquitetura, modelo de dados, diagramas e estratégia Git.
+
+---
+
+# UML Architecture & System Design
+
+Antes de iniciar a implementação do backend, foi conduzido um processo formal de modelagem UML utilizando **Astah UML**, com o objetivo de transformar o enunciado do teste técnico da LBC em uma arquitetura orientada a domínio antes da escrita de qualquer linha de código.
+
+Essa etapa de design garantiu que as entidades, relacionamentos e regras de negócio estivessem claramente definidos e validados previamente, reduzindo retrabalho e orientando uma separação de responsabilidades consistente entre as camadas da aplicação.
+
+O modelo UML foi utilizado para:
+
+- **Modelar antes de codificar** — o diagrama foi criado antes da implementação, servindo como contrato visual da solução.
+- **Identificar as entidades principais** — `Employee` e `VacationRequest`, com seus atributos e enums.
+- **Validar as regras de negócio** — unicidade de e-mail, hierarquia de manager, validação de datas inclusivas e regra global de sobreposição (overlap).
+- **Definir responsabilidades entre camadas** — Controller, Service, Repository, Mapper e Domain, evitando vazamento de lógica entre camadas.
+- **Documentar o sistema profissionalmente** — produzindo artefatos de arquitetura reutilizáveis para onboarding e revisão técnica.
+
+## Domain Model
+
+O núcleo do sistema é composto por duas entidades de domínio principais.
+
+### Employee
+
+Representa um colaborador do sistema.
+
+**Atributos:**
+
+| Atributo    | Descrição                                  |
+|-------------|--------------------------------------------|
+| `id`        | Identificador único (UUID)                 |
+| `name`      | Nome do colaborador                        |
+| `email`     | E-mail corporativo                         |
+| `role`      | Papel do colaborador no sistema            |
+| `manager`   | Manager direto (também um `Employee`)      |
+| `createdAt` | Data de criação                            |
+| `updatedAt` | Data da última atualização                 |
+
+**Regras:**
+
+- O e-mail deve ser único.
+- Um colaborador pode possuir um manager.
+- O manager também é um `Employee` (auto-relacionamento).
+
+**Roles:**
+
+- `ADMIN`
+- `MANAGER`
+- `COLLABORATOR`
+
+### VacationRequest
+
+Representa um pedido de férias.
+
+**Atributos:**
+
+| Atributo          | Descrição                                  |
+|-------------------|--------------------------------------------|
+| `id`              | Identificador único (UUID)                 |
+| `employee`        | Colaborador solicitante                    |
+| `startDate`       | Data de início (inclusiva)                 |
+| `endDate`         | Data de fim (inclusiva)                    |
+| `status`          | Situação atual do pedido                   |
+| `reason`          | Justificativa do pedido                    |
+| `rejectionReason` | Motivo da rejeição (quando aplicável)      |
+| `createdAt`       | Data de criação                            |
+| `updatedAt`       | Data da última atualização                 |
+
+**Status:**
+
+- `PENDING`
+- `APPROVED`
+- `REJECTED`
+- `CANCELLED`
+
+**Regras:**
+
+- Deve possuir um colaborador associado.
+- A data inicial deve ser menor ou igual à data final (`startDate <= endDate`).
+- Não permite sobreposição com pedidos ativos (`PENDING` ou `APPROVED`).
+- Pode ser aprovado.
+- Pode ser rejeitado.
+- Pode ser cancelado.
+
+## Main Relationship
+
+### Employee (1) — (\*) VacationRequest
+
+```
+Employee (1) -------- (*) VacationRequest
+```
+
+- Um colaborador pode possuir vários pedidos de férias.
+- Um pedido de férias pertence a apenas um colaborador.
+
+### Employee como Manager (1) — (\*) Employee
+
+```
+Employee (Manager) (1) -------- (*) Employee
+```
+
+- Um manager pode gerir vários colaboradores.
+- Um colaborador possui apenas um manager.
+
+## Architecture Layers
+
+A aplicação adota uma arquitetura em camadas com responsabilidades bem definidas.
+
+### Controller Layer
+
+Responsável por:
+
+- Receber requisições HTTP.
+- Validar a entrada.
+- Delegar o processamento para os Services.
+- Retornar respostas REST.
+
+**Classes:**
+
+- `EmployeeController`
+- `VacationRequestController`
+
+### Service Layer
+
+Responsável por:
+
+- Regras de negócio.
+- Validações.
+- Controle de permissões.
+- Aprovação/rejeição de férias.
+- Verificação de conflitos (overlap global).
+
+**Classes:**
+
+- `EmployeeService`
+- `VacationRequestService`
+- `CurrentUserService`
+
+### Repository Layer
+
+Responsável por:
+
+- Persistência.
+- Consultas.
+- Acesso ao banco de dados.
+
+**Classes:**
+
+- `EmployeeRepository`
+- `VacationRequestRepository`
+
+### Mapper Layer
+
+Responsável por:
+
+- Conversão Entity ⇄ DTO.
+
+**Classes:**
+
+- `EmployeeMapper`
+- `VacationRequestMapper`
+
+## UML Diagrams
+
+Os diagramas a seguir foram gerados no **Astah UML** e representam fielmente a arquitetura implementada no backend.
+
+### 1. Complete Backend Architecture
+
+![Complete Backend Architecture](docs/uml/complete-backend-architecture.png)
+
+Visão geral da arquitetura do sistema, evidenciando a colaboração entre as camadas. O `EmployeeController` delega ao `EmployeeService`, que coordena `EmployeeRepository`, `EmployeeMapper` e `CurrentUserService` para aplicar regras de negócio e autorização. Os mappers (`EmployeeMapper` e `VacationRequestMapper`) isolam a conversão entre entidades de domínio e DTOs, enquanto o `CurrentUserService` centraliza a resolução do usuário autenticado via header `X-User-Id`. O diagrama consolida Controllers, Services, Repositories, Mappers, Domain Model, Enums e seus relacionamentos em uma única visão.
+
+### 2. Employee Module
+
+![Employee Module](docs/uml/employee-module.png)
+
+Módulo responsável pela gestão de colaboradores e pela hierarquia de managers. As classes envolvidas são:
+
+- **`EmployeeController`** — expõe os endpoints REST de colaboradores (`POST`, `GET`, `PUT`, `DELETE`).
+- **`EmployeeService`** — concentra as regras administrativas: restrição de escrita a `ADMIN` (`requireAdmin`), unicidade de e-mail (`validateEmailUnique`), resolução e validação de manager (`resolveManager`) e bloqueio de remoção quando há pedidos associados.
+- **`EmployeeRepository`** — interface `JpaRepository<Employee, UUID>` com consultas por e-mail e por manager.
+- **`EmployeeMapper`** — converte `Employee` em `EmployeeResponse`/`EmployeeSummaryResponse` e aplica os dados dos DTOs de entrada.
+- **`CurrentUserService`** — fornece o colaborador autenticado e sua `Role` para as decisões de permissão.
+
+### 3. Vacation Request Module
+
+![Vacation Request Module](docs/uml/vacation-request-module.png)
+
+Módulo responsável pelo ciclo de vida dos pedidos de férias. As classes envolvidas são:
+
+- **`VacationRequestController`** — expõe os endpoints de criação, listagem, edição e as transições de status (`approve`, `reject`, `cancel`).
+- **`VacationRequestService`** — implementa as regras de negócio: criação conforme a role, validação de datas inclusivas, aprovação/rejeição por `ADMIN` ou pelo manager direto, cancelamento de pedidos `PENDING` ou `APPROVED` e a verificação de sobreposição global.
+- **`VacationRequestRepository`** — interface `JpaRepository<VacationRequest, UUID>` cuja query `existsOverlapping` / `existsActiveOverlap` valida a regra principal do sistema: **não permitir férias sobrepostas em pedidos com status `PENDING` ou `APPROVED`**.
+- **`VacationRequestMapper`** — converte entre `VacationRequest` e os DTOs correspondentes.
+
+### 4. Domain Model
+
+![Domain Model](docs/uml/domain-model.png)
+
+Modelo de domínio do sistema, com as entidades, enums e relacionamentos:
+
+- **`Employee`** — colaborador do sistema (e-mail único, possível manager que também é um `Employee`).
+- **`VacationRequest`** — pedido de férias vinculado a um colaborador, com datas inclusivas e proteção contra sobreposição.
+- **`Role`** — enum com `ADMIN`, `MANAGER` e `COLLABORATOR`.
+- **`VacationStatus`** — enum com `PENDING`, `APPROVED`, `REJECTED` e `CANCELLED`.
+
+**Relacionamentos:** `Employee (1) — (*) VacationRequest` (um colaborador possui vários pedidos; cada pedido pertence a um único colaborador) e o auto-relacionamento `Employee (Manager) (1) — (*) Employee` (um manager gere vários colaboradores; cada colaborador possui no máximo um manager).
+
+## Astah UML Source File
+
+O diagrama UML completo encontra-se disponível para consulta:
+
+[Astah UML — Complete Diagram (Google Drive)](https://drive.google.com/file/d/1pKdnrIwN7XbSfTA4OpBkPPr-CldUPdyD/view?usp=sharing)
+
+> The UML diagrams were created before implementation as part of the software architecture and domain modeling process.
