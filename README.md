@@ -1,149 +1,450 @@
+<div align="center">
+
 # ProjetoLBC — Sistema de Gestão de Férias
 
-Sistema full-stack para gerenciamento de colaboradores e pedidos de férias, desenvolvido como teste técnico. A aplicação garante que não haja sobreposição de férias entre colaboradores em dias em que existam pedidos ativos (PENDING ou APPROVED).
+Aplicação full-stack para a **gestão de colaboradores e pedidos de férias**, com prevenção de **sobreposição global de férias** e controlo de acesso baseado em perfis (ADMIN, MANAGER, COLLABORATOR).
 
-## Tecnologias utilizadas
+![Status](https://img.shields.io/badge/Estado-Em%20Produção-success)
+![Java](https://img.shields.io/badge/Java-21-orange)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.5-6DB33F?logo=springboot&logoColor=white)
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
 
-| Camada        | Tecnologia                          |
-|---------------|-------------------------------------|
-| Backend       | Java 21, Spring Boot                |
-| Frontend      | React, Vite                         |
-| Banco de dados| PostgreSQL                          |
-| API           | REST                                |
-| Documentação  | Swagger / OpenAPI                   |
-| Infraestrutura| Docker, docker-compose              |
-| Migrations    | Flyway                              |
+### Links rápidos
 
-## Regras de negócio resumidas
+[![Frontend Online](https://img.shields.io/badge/Frontend-Online-000000?logo=vercel&logoColor=white)](https://projeto-lbc.vercel.app)
+[![Backend Online](https://img.shields.io/badge/Backend-Online-46E3B7?logo=render&logoColor=white)](https://projetolbc-backend.onrender.com)
+[![Docker Hub Backend](https://img.shields.io/badge/Docker%20Hub-Backend-2496ED?logo=docker&logoColor=white)](https://hub.docker.com/r/williamsartijose182/projetolbc-backend)
+[![Docker Hub Frontend](https://img.shields.io/badge/Docker%20Hub-Frontend-2496ED?logo=docker&logoColor=white)](https://hub.docker.com/r/williamsartijose182/projetolbc-frontend)
+[![Figma](https://img.shields.io/badge/Figma-Design-F24E1E?logo=figma&logoColor=white)](https://www.figma.com/design/MziEDJuxHJBGJm0fzJ6BpF/Untitled?node-id=1-1051&t=gRvLKXZZYvZE5Fhe-1)
+[![GitHub](https://img.shields.io/badge/GitHub-Repositório-181717?logo=github&logoColor=white)](https://github.com/williamsartijose/ProjetoLBC)
 
-### Roles
+</div>
 
-| Role          | Permissões principais                                                                 |
-|---------------|---------------------------------------------------------------------------------------|
-| ADMIN         | CRUD de colaboradores; gerenciar todas as férias; criar pedido para qualquer colaborador |
-| MANAGER       | Aprovar/rejeitar férias dos colaboradores diretos; criar pedido apenas para si mesmo  |
-| COLLABORATOR  | Criar e gerenciar apenas seus próprios pedidos de férias                              |
+---
 
-### Autenticação (fase atual)
+## 1. Sobre o Projeto
 
-Não há login real. O usuário logado é simulado via header HTTP:
+### Objetivo
 
-```
-X-User-Id: <employee-uuid>
-```
+O **ProjetoLBC** é um Sistema de Gestão de Férias que permite registar colaboradores, gerir a sua hierarquia (managers) e tratar todo o ciclo de vida dos pedidos de férias — criação, edição, aprovação, rejeição e cancelamento.
 
-No futuro, o frontend terá um dropdown para seleção do usuário ativo.
+### Problema que resolve
 
-### Pedidos de férias
+Numa organização, várias pessoas podem solicitar férias em simultâneo, gerando conflitos de cobertura. O sistema impõe uma **regra de sobreposição global**: não podem existir dois pedidos com datas sobrepostas enquanto ambos estiverem em estado `PENDING` ou `APPROVED`, independentemente do colaborador. Pedidos `REJECTED` e `CANCELLED` não bloqueiam o calendário.
 
-- **Status:** PENDING, APPROVED, REJECTED, CANCELLED
-- **Datas:** inclusivas (início e fim contam como dias de férias)
-- **Sobreposição global:** não pode existir outro pedido em PENDING ou APPROVED com datas sobrepostas, independentemente do colaborador
-- REJECTED e CANCELLED não bloqueiam o calendário
-- Pedidos APPROVED podem ser cancelados
+### Público-alvo
 
-## Estrutura do repositório
+Equipas de Recursos Humanos, managers e colaboradores que necessitam de um fluxo controlado e auditável de aprovação de férias.
+
+### Arquitetura geral
+
+- **Frontend** — SPA em React + Vite + TypeScript, com Material UI, consumindo a API REST.
+- **Backend** — API REST em Spring Boot 3 (Java 21), organizada em camadas (Controller → Service → Repository), com mappers DTO ⇄ entidade e tratamento global de erros.
+- **Base de dados** — PostgreSQL, com versionamento de schema via Flyway.
+- **Autenticação simulada** — o utilizador ativo é identificado pelo header HTTP `X-User-Id` (sem login real nesta fase).
+
+---
+
+## 2. Demonstração
+
+| Recurso | URL |
+|--------|-----|
+| Frontend (Vercel) | https://projeto-lbc.vercel.app |
+| Backend (Render) | https://projetolbc-backend.onrender.com |
+| Health check | https://projetolbc-backend.onrender.com/api/health |
+| Swagger UI | https://projetolbc-backend.onrender.com/swagger-ui.html |
+| OpenAPI JSON | https://projetolbc-backend.onrender.com/v3/api-docs |
+
+> O backend expõe documentação **Swagger / OpenAPI** através do `springdoc-openapi`. Os caminhos `/swagger-ui.html` e `/v3/api-docs` estão configurados em `backend/src/main/resources/application.yml`.
+
+---
+
+## 3. Tecnologias
+
+| Camada | Tecnologias |
+|--------|-------------|
+| **Frontend** | React 18, Vite 5, TypeScript 5, Material UI 6, React Router 6, Axios, TanStack Query 5 |
+| **Backend** | Java 21, Spring Boot 3.4.5 (Web, Data JPA, Validation), Lombok, springdoc-openapi 2.8.6 |
+| **Base de dados** | PostgreSQL |
+| **Migrations** | Flyway (`flyway-core`, `flyway-database-postgresql`) |
+| **Build** | Maven (backend), npm/Vite (frontend) |
+| **Documentação API** | Swagger / OpenAPI |
+| **Docker** | Dockerfiles multi-stage (backend e frontend), nginx, Docker Compose |
+| **Deploy** | Vercel (frontend), Render (backend + PostgreSQL), Docker Hub (imagens) |
+| **Versionamento** | Git, GitHub |
+
+---
+
+## 4. Arquitetura do Projeto
 
 ```
 ProjetoLBC/
-├── .gitignore
-├── README.md
-├── docker-compose.yml
-├── backend/          # API Spring Boot
-├── frontend/         # SPA React + Vite (a implementar)
-└── docs/             # Documentação técnica
-    ├── ARCHITECTURE.md
-    ├── DATABASE.md
-    ├── CLASS_DIAGRAM.md
-    ├── FLOWS.md
-    └── GIT_STRATEGY.md
+├── frontend/            # SPA React + Vite + TypeScript (Material UI)
+├── backend/             # API REST Spring Boot (Java 21)
+├── docs/                # Documentação técnica e diagramas UML
+├── docker-compose.yml   # Orquestração: postgres + backend + frontend
+└── README.md
 ```
 
-## Estado atual do projeto
+| Pasta / Ficheiro | Descrição |
+|------------------|-----------|
+| `frontend/` | Aplicação React + Vite. Inclui páginas (Painel, Colaboradores, Pedidos de Férias, Relatórios, Configurações), componentes reutilizáveis, contexto de utilizador ativo, integração com a API via Axios + TanStack Query. |
+| `backend/` | API Spring Boot organizada em `controller`, `service`, `repository`, `domain` (entidades/enums), `dto`, `mapper`, `exception` e `config`. |
+| `docs/` | `ARCHITECTURE.md`, `DATABASE.md`, `CLASS_DIAGRAM.md`, `FLOWS.md`, `GIT_STRATEGY.md` e diagramas UML em `docs/uml/`. |
+| `docker-compose.yml` | Define os serviços `postgres`, `backend` e `frontend` para execução local containerizada. |
 
-**Fase 4 (services, controllers e regras de negócio) — concluída:** API REST completa para colaboradores e pedidos de férias.
-
-| Componente           | Status                                      |
-|----------------------|---------------------------------------------|
-| Documentação         | ✅ Completa                                 |
-| Backend API REST     | ✅ Employees + Vacation Requests            |
-| Regras de negócio    | ✅ Roles, overlap global, status            |
-| Autenticação simulada| ✅ X-User-Id via CurrentUserService         |
-| Tratamento de erros  | ✅ 400, 403, 404, 409                       |
-| Frontend             | ⏳ Próxima fase                             |
-
-## Fases de implementação
-
-| Fase | Descrição                                              | Status     |
-|------|--------------------------------------------------------|------------|
-| 1    | Documentação + skeleton backend + PostgreSQL Docker    | ✅         |
-| 2    | Backend: entidades, migrations Flyway, repositories    | ✅         |
-| 3    | Backend: DTOs, mappers, erros e autenticação simulada  | ✅         |
-| 4    | Backend: services, controllers CRUD e regras de negócio| ✅ Atual   |
-| 5    | Frontend: setup React/Vite, integração com API         | ⏳ Próxima |
-| 6    | Docker completo (backend + frontend + PostgreSQL)      | ⏳         |
-| 7    | Testes, refinamentos e documentação final              | ⏳         |
-
-## Autenticação simulada (X-User-Id)
-
-Não há login real. O usuário autenticado é identificado pelo header HTTP:
+### Estrutura do backend
 
 ```
-X-User-Id: <employee-uuid>
+backend/src/main/java/com/lbc/vacation/
+├── VacationManagementApplication.java
+├── config/        # CorsConfig
+├── controller/    # HealthController, EmployeeController, VacationRequestController
+├── service/       # EmployeeService, VacationRequestService, CurrentUserService
+├── repository/    # EmployeeRepository, VacationRequestRepository
+├── domain/        # entity (Employee, VacationRequest) + enums (Role, VacationStatus)
+├── dto/           # Requests/Responses + ErrorResponse + HealthResponse
+├── mapper/        # EmployeeMapper, VacationRequestMapper
+└── exception/     # Exceções de domínio + GlobalExceptionHandler
 ```
 
-Todos os endpoints abaixo **exigem** esse header, exceto `GET /api/health`.
+### Estrutura do frontend
 
-O `CurrentUserService` busca o `Employee` correspondente e os services aplicam autorização por role.
+```
+frontend/src/
+├── components/    # dashboard/, reports/, settings/, notifications/
+├── context/       # CurrentUserContext (utilizador ativo via X-User-Id)
+├── features/      # employees/, vacationRequests/, dashboard/, reports/, notifications/
+├── layout/        # MainLayout, Sidebar, Topbar
+├── lib/           # apiClient (Axios), queryClient, formatDate, apiError
+├── pages/         # PainelPage, ColaboradoresPage, PedidosFeriasPage, RelatoriosPage, ConfiguracoesPage
+├── routes/        # AppRoutes, paths
+└── theme/         # theme.ts (design system Material UI)
+```
 
-| Cenário                         | HTTP Status | Exemplo de mensagem                    |
-|---------------------------------|-------------|----------------------------------------|
-| Header ausente                  | 400         | X-User-Id header is required           |
-| UUID inválido                   | 400         | X-User-Id header must be a valid UUID  |
-| Colaborador inexistente         | 404         | Employee not found                     |
-| Sem permissão para a operação   | 403         | Access denied                          |
+---
 
-## Endpoints da API
+## 5. Arquitetura de Deploy
+
+```
+            Utilizador (Browser)
+                    │
+                    ▼
+   ┌─────────────────────────────────┐
+   │  Vercel — Frontend (SPA)         │
+   │  React + Vite                    │
+   │  https://projeto-lbc.vercel.app  │
+   └─────────────────────────────────┘
+                    │  HTTPS  →  /api/**
+                    ▼
+   ┌─────────────────────────────────────────┐
+   │  Render — Backend (Docker)               │
+   │  Spring Boot 3 / Java 21                 │
+   │  https://projetolbc-backend.onrender.com │
+   └─────────────────────────────────────────┘
+                    │  JDBC
+                    ▼
+   ┌─────────────────────────────────┐
+   │  Render — PostgreSQL             │
+   │  Migrations geridas pelo Flyway  │
+   └─────────────────────────────────┘
+```
+
+**Fluxo completo:**
+
+1. O utilizador acede ao **frontend** publicado na **Vercel**.
+2. A SPA chama a **API REST** publicada no **Render**, enviando o header `X-User-Id` para simular o utilizador autenticado. O CORS do backend autoriza a origem `https://projeto-lbc.vercel.app` (e `http://localhost:5173` em desenvolvimento).
+3. O backend executa as regras de negócio e comunica com o **PostgreSQL** (Render) via JDBC.
+4. Na primeira inicialização, o **Flyway** aplica automaticamente as migrations, criando o schema e os utilizadores de teste.
+
+> Em execução local via Docker Compose, o frontend é servido por **nginx**, que reencaminha `/api` para o serviço `backend` na rede interna do Compose (mesma origem).
+
+---
+
+## 6. Design System
+
+O design foi concebido no **Figma** antes da implementação do frontend, definindo o design system (cores, tipografia, componentes, espaçamentos) e os fluxos de navegação.
+
+🔗 **Figma:** https://www.figma.com/design/MziEDJuxHJBGJm0fzJ6BpF/Untitled?node-id=1-1051&t=gRvLKXZZYvZE5Fhe-1
+
+O desenvolvimento do frontend foi baseado nesta prototipação, garantindo consistência visual. A interface está integralmente em **Português de Portugal**. O design system está materializado em `frontend/src/theme/theme.ts` (cor primária `#2563EB`, fundo `#F8FAFC`, sidebar `#0F172A`, raio de borda `12px`).
+
+---
+
+## 7. Modelação UML
+
+Antes da codificação, foi realizada uma modelação **UML (Astah UML)** para definir entidades, relacionamentos, regras de negócio e responsabilidades das camadas.
+
+### Complete Backend Architecture
+![Complete Backend Architecture](docs/uml/complete-backend-architecture.png)
+
+Visão geral da arquitetura: Controllers, Services, Repositories, Mappers, Domain Model, Enums e respetivos relacionamentos.
+
+### Employee Module
+![Employee Module](docs/uml/employee-module.png)
+
+Gestão de colaboradores e hierarquia de managers: `EmployeeController`, `EmployeeService`, `EmployeeRepository`, `EmployeeMapper` e `CurrentUserService`.
+
+### Vacation Request Module
+![Vacation Request Module](docs/uml/vacation-request-module.png)
+
+Ciclo de vida dos pedidos de férias: `VacationRequestController`, `VacationRequestService`, `VacationRequestRepository` (com a query de sobreposição global) e `VacationRequestMapper`.
+
+### Domain Model
+![Domain Model](docs/uml/domain-model.png)
+
+Entidades `Employee` e `VacationRequest`, enums `Role` e `VacationStatus`, e relacionamentos: `Employee (1) — (*) VacationRequest` e o auto-relacionamento `Employee (Manager) (1) — (*) Employee`.
+
+> Documentação técnica adicional disponível em `docs/` (`ARCHITECTURE.md`, `DATABASE.md`, `CLASS_DIAGRAM.md`, `FLOWS.md`, `GIT_STRATEGY.md`).
+
+---
+
+## 8. Docker
+
+O projeto inclui **Dockerfiles multi-stage** para backend e frontend, seguindo boas práticas de produção (imagens finais reduzidas, utilizador não-root no backend, nginx no frontend).
+
+### Dockerização do Backend
+
+`backend/Dockerfile` — compila com Maven + JDK 21 e executa apenas com o JRE Alpine.
+
+```dockerfile
+# Stage 1 - Build (Maven + JDK 21)
+FROM maven:3.9-eclipse-temurin-21 AS build
+WORKDIR /app
+COPY pom.xml .
+RUN mvn -B dependency:go-offline
+COPY src ./src
+RUN mvn -B clean package -DskipTests
+
+# Stage 2 - Runtime (apenas JRE)
+FROM eclipse-temurin:21-jre-alpine AS runtime
+WORKDIR /app
+RUN addgroup -S app && adduser -S app -G app
+COPY --from=build /app/target/*.jar app.jar
+RUN chown -R app:app /app
+USER app
+ENV SPRING_PROFILES_ACTIVE=docker
+ENV JAVA_OPTS=""
+EXPOSE 8080
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+```
+
+**Funcionamento:** o *stage* de build aproveita o cache de dependências (copia o `pom.xml` antes do código). O artefacto final corre num container leve com JRE, como utilizador não-root, expondo a porta **8080** e ativando o profile `docker`.
+
+### Dockerização do Frontend
+
+`frontend/Dockerfile` — compila a aplicação Vite e serve os estáticos com **nginx**, com fallback de SPA e proxy para a API.
+
+```dockerfile
+# Stage 1 - Build (Node + Vite)
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+ARG VITE_API_BASE_URL=""
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+RUN npm run build
+
+# Stage 2 - Serve (nginx, SPA + proxy)
+FROM nginx:1.27-alpine AS runtime
+ENV BACKEND_URL=http://backend:8080
+COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+**Funcionamento:** com `VITE_API_BASE_URL` vazio, a aplicação usa caminhos relativos (`/api`). O nginx serve os estáticos, faz **SPA fallback** (`try_files ... /index.html`) e reencaminha `/api` para o backend (`${BACKEND_URL}`), eliminando problemas de CORS em execução local.
+
+---
+
+## 9. Docker Hub
+
+As imagens estão publicadas no Docker Hub:
+
+| Imagem | Repositório |
+|--------|-------------|
+| Backend | https://hub.docker.com/r/williamsartijose182/projetolbc-backend |
+| Frontend | https://hub.docker.com/r/williamsartijose182/projetolbc-frontend |
+
+### Como obter as imagens
+
+```bash
+docker pull williamsartijose182/projetolbc-backend:latest
+docker pull williamsartijose182/projetolbc-frontend:latest
+```
+
+---
+
+## 10. Executar via Docker
+
+### Pré-requisitos
+
+- Docker
+- Docker Compose
+
+### Passo a passo
+
+```bash
+# 1. Clonar o repositório
+git clone https://github.com/williamsartijose/ProjetoLBC.git
+
+# 2. Entrar na pasta do projeto
+cd ProjetoLBC
+
+# 3. Construir e iniciar os serviços (postgres + backend + frontend)
+docker compose up -d
+```
+
+| Passo | Descrição |
+|-------|-----------|
+| `git clone` | Obtém o código-fonte do repositório. |
+| `cd ProjetoLBC` | Entra na raiz do monorepo (onde está o `docker-compose.yml`). |
+| `docker compose up -d` | Constrói as imagens e arranca os três serviços em segundo plano. O backend aguarda o PostgreSQL ficar saudável; o Flyway aplica as migrations no arranque. |
+
+**Serviços e portas:**
+
+| Serviço | Porta | URL local |
+|---------|-------|-----------|
+| frontend | 5173 → 80 | http://localhost:5173 |
+| backend | 8080 | http://localhost:8080/api/health |
+| postgres | 5432 | `localhost:5432` (db `vacation_db`) |
+
+Parar os serviços:
+
+```bash
+docker compose down          # para os containers
+docker compose down -v       # para e remove o volume de dados
+```
+
+---
+
+## 11. Executar Localmente (sem containers do backend/frontend)
+
+### Pré-requisitos
+
+- Java 21
+- Maven 3.9+
+- Node.js + npm
+- Docker (para a base de dados PostgreSQL)
+
+### Base de Dados
+
+A partir da raiz do projeto, suba apenas o PostgreSQL:
+
+```bash
+docker compose up -d postgres
+```
+
+| Campo | Valor |
+|-------|-------|
+| Host | localhost |
+| Port | 5432 |
+| Database | vacation_db |
+| User | vacation_user |
+| Password | vacation_pass |
+
+### Backend
+
+```bash
+cd backend
+mvn spring-boot:run
+```
+
+- API: http://localhost:8080/api
+- Swagger UI: http://localhost:8080/swagger-ui.html
+- Health: http://localhost:8080/api/health
+
+Executar os testes (inclui testes de integração das regras de negócio):
+
+```bash
+mvn test
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+- Aplicação: http://localhost:5173
+- Configure o URL da API através de `VITE_API_BASE_URL` (ver `frontend/.env.example`). Em desenvolvimento, aponta para `http://localhost:8080`.
+
+---
+
+## 12. Base de Dados
+
+- **SGBD:** PostgreSQL
+- **Versionamento de schema:** Flyway (migrations em `backend/src/main/resources/db/migration/`)
+
+| Migration | Descrição |
+|-----------|-----------|
+| `V1__init.sql` | Cria as tabelas `employees` e `vacation_requests`, constraints (e-mail único, FKs de `manager_id` e `employee_id`) e índices. |
+| `V2__seed_test_users.sql` | Insere 3 utilizadores de teste (ADMIN, MANAGER, COLLABORATOR). |
+
+**Tabelas principais:**
+
+| Tabela | Colunas |
+|--------|---------|
+| `employees` | `id`, `name`, `email`, `role`, `manager_id`, `created_at`, `updated_at` |
+| `vacation_requests` | `id`, `employee_id`, `start_date`, `end_date`, `status`, `reason`, `rejection_reason`, `created_at`, `updated_at` |
+
+**Índices:** `idx_employees_manager_id`, `idx_vacation_requests_status_dates`, `idx_vacation_requests_employee_id`.
+
+> O Flyway é aplicado automaticamente no arranque do backend (`spring.flyway.enabled: true`). O Hibernate está configurado com `ddl-auto: validate`, validando o schema gerido pelas migrations.
+
+---
+
+## 13. API
+
+> Todos os endpoints exigem o header `X-User-Id`, **exceto** `GET /api/health`.
 
 ### Health (público)
 
-| Método | Endpoint        | Descrição              |
-|--------|-----------------|------------------------|
-| GET    | `/api/health`   | Status da aplicação    |
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | `/api/health` | Estado da aplicação |
 
 ### Employees
 
-| Método | Endpoint               | Descrição                    | Permissão de escrita |
-|--------|------------------------|------------------------------|----------------------|
-| POST   | `/api/employees`       | Criar colaborador            | ADMIN                |
-| GET    | `/api/employees`       | Listar colaboradores         | Autenticado          |
-| GET    | `/api/employees/{id}`  | Detalhes do colaborador      | Autenticado          |
-| PUT    | `/api/employees/{id}`  | Atualizar colaborador        | ADMIN                |
-| DELETE | `/api/employees/{id}`  | Remover colaborador          | ADMIN                |
+| Método | Endpoint | Descrição | Escrita |
+|--------|----------|-----------|---------|
+| POST | `/api/employees` | Criar colaborador | ADMIN |
+| GET | `/api/employees` | Listar colaboradores | Autenticado |
+| GET | `/api/employees/{id}` | Detalhes do colaborador | Autenticado |
+| PUT | `/api/employees/{id}` | Atualizar colaborador | ADMIN |
+| DELETE | `/api/employees/{id}` | Remover colaborador | ADMIN |
 
 ### Vacation Requests
 
-| Método | Endpoint                                  | Descrição                    |
-|--------|-------------------------------------------|------------------------------|
-| POST   | `/api/vacation-requests`                  | Criar pedido de férias       |
-| GET    | `/api/vacation-requests`                  | Listar pedidos (escopo por role) |
-| GET    | `/api/vacation-requests/{id}`             | Detalhes do pedido           |
-| PUT    | `/api/vacation-requests/{id}`             | Editar pedido (somente PENDING) |
-| POST   | `/api/vacation-requests/{id}/approve`     | Aprovar pedido               |
-| POST   | `/api/vacation-requests/{id}/reject`      | Rejeitar pedido              |
-| POST   | `/api/vacation-requests/{id}/cancel`      | Cancelar pedido              |
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| POST | `/api/vacation-requests` | Criar pedido de férias |
+| GET | `/api/vacation-requests` | Listar pedidos (escopo por perfil) |
+| GET | `/api/vacation-requests/{id}` | Detalhes do pedido |
+| PUT | `/api/vacation-requests/{id}` | Editar pedido (apenas PENDING) |
+| POST | `/api/vacation-requests/{id}/approve` | Aprovar pedido |
+| POST | `/api/vacation-requests/{id}/reject` | Rejeitar pedido (com motivo) |
+| POST | `/api/vacation-requests/{id}/cancel` | Cancelar pedido |
 
 **Escopo de listagem de pedidos:**
 
-| Role         | Vê                                                          |
-|--------------|-------------------------------------------------------------|
-| ADMIN        | Todos os pedidos                                            |
-| MANAGER      | Próprios pedidos + pedidos dos colaboradores diretos        |
-| COLLABORATOR | Apenas os próprios pedidos                                  |
+| Perfil | Vê |
+|--------|----|
+| ADMIN | Todos os pedidos |
+| MANAGER | Próprios pedidos + dos subordinados diretos |
+| COLLABORATOR | Apenas os próprios pedidos |
 
-## Padrão de erros da API
+### Padrão de erros
 
-Erros são retornados em JSON padronizado via `GlobalExceptionHandler`:
+Respostas de erro padronizadas em JSON via `GlobalExceptionHandler`:
 
 ```json
 {
@@ -155,448 +456,118 @@ Erros são retornados em JSON padronizado via `GlobalExceptionHandler`:
 }
 ```
 
-| HTTP Status | Quando ocorre                                      | Exemplos                                              |
-|-------------|----------------------------------------------------|-------------------------------------------------------|
-| 400         | Validação, regra de negócio, body inválido         | Email duplicado, datas inválidas, status inválido     |
-| 403         | Usuário autenticado sem permissão                  | COLLABORATOR tentando criar employee ou aprovar       |
-| 404         | Recurso não encontrado                             | Employee ou vacation request inexistente              |
-| 409         | Conflito de overlap global                         | Pedido com datas sobrepostas a PENDING/APPROVED       |
+| HTTP | Quando ocorre |
+|------|---------------|
+| 400 | Validação, regra de negócio ou body inválido |
+| 403 | Utilizador autenticado sem permissão |
+| 404 | Recurso não encontrado |
+| 409 | Conflito de sobreposição global de férias |
 
-## Exemplos curl
-
-Substitua `<admin-uuid>`, `<manager-uuid>` e `<collaborator-uuid>` pelos IDs reais do banco.
-
-### Criar colaborador (ADMIN)
-
-```bash
-curl -X POST http://localhost:8080/api/employees \
-  -H "Content-Type: application/json" \
-  -H "X-User-Id: <admin-uuid>" \
-  -d "{\"name\":\"Alice\",\"email\":\"alice@lbc.com\",\"role\":\"COLLABORATOR\",\"managerId\":\"<manager-uuid>\"}"
-```
-
-### Criar pedido de férias (COLLABORATOR — para si mesmo)
+### Exemplo (curl)
 
 ```bash
 curl -X POST http://localhost:8080/api/vacation-requests \
   -H "Content-Type: application/json" \
-  -H "X-User-Id: <collaborator-uuid>" \
-  -d "{\"startDate\":\"2026-06-01\",\"endDate\":\"2026-06-10\",\"reason\":\"Annual leave\"}"
+  -H "X-User-Id: 33333333-3333-3333-3333-333333333333" \
+  -d "{\"startDate\":\"2026-06-01\",\"endDate\":\"2026-06-10\",\"reason\":\"Férias anuais\"}"
 ```
-
-### Criar pedido para outro colaborador (ADMIN)
-
-```bash
-curl -X POST http://localhost:8080/api/vacation-requests \
-  -H "Content-Type: application/json" \
-  -H "X-User-Id: <admin-uuid>" \
-  -d "{\"employeeId\":\"<collaborator-uuid>\",\"startDate\":\"2026-07-01\",\"endDate\":\"2026-07-05\",\"reason\":\"Vacation\"}"
-```
-
-### Aprovar pedido (MANAGER do colaborador)
-
-```bash
-curl -X POST http://localhost:8080/api/vacation-requests/<request-uuid>/approve \
-  -H "X-User-Id: <manager-uuid>"
-```
-
-### Rejeitar pedido
-
-```bash
-curl -X POST http://localhost:8080/api/vacation-requests/<request-uuid>/reject \
-  -H "Content-Type: application/json" \
-  -H "X-User-Id: <manager-uuid>" \
-  -d "{\"rejectionReason\":\"Team coverage required\"}"
-```
-
-### Cancelar pedido aprovado
-
-```bash
-curl -X POST http://localhost:8080/api/vacation-requests/<request-uuid>/cancel \
-  -H "X-User-Id: <collaborator-uuid>"
-```
-
-### Listar pedidos visíveis para o usuário logado
-
-```bash
-curl http://localhost:8080/api/vacation-requests \
-  -H "X-User-Id: <manager-uuid>"
-```
-
-## Como executar localmente
-
-### Pré-requisitos
-
-- Java 21
-- Maven 3.9+
-- Docker e Docker Compose
-
-### 1. Subir o PostgreSQL
-
-Na raiz do projeto:
-
-```bash
-docker compose up -d
-```
-
-Verificar se o container está saudável:
-
-```bash
-docker compose ps
-```
-
-Conexão para o DBeaver:
-
-| Campo    | Valor          |
-|----------|----------------|
-| Host     | localhost      |
-| Port     | 5432           |
-| Database | vacation_db    |
-| User     | vacation_user  |
-| Password | vacation_pass  |
-
-### 2. Rodar o backend
-
-> **Importante:** se você já executou a Fase 1 com a migration antiga (`SELECT 1`), recrie o banco antes de subir o backend:
->
-> ```bash
-> docker compose down -v
-> docker compose up -d
-> ```
->
-> Isso evita conflito de checksum do Flyway na `V1__init.sql`.
-
-```bash
-cd backend
-mvn spring-boot:run
-```
-
-Na primeira execução após a Fase 2, o Flyway criará as tabelas:
-
-| Tabela             | Descrição                          |
-|--------------------|------------------------------------|
-| `employees`        | Colaboradores e hierarquia (manager) |
-| `vacation_requests`| Pedidos de férias                  |
-
-### Verificar tabelas no DBeaver
-
-1. Conecte ao banco `vacation_db` (credenciais na seção acima).
-2. Expanda **Schemas → public → Tables**.
-3. Confirme a presença de `employees` e `vacation_requests`.
-4. Opcional — inspecionar estrutura:
-   - `employees`: colunas `id`, `name`, `email`, `role`, `manager_id`, `created_at`, `updated_at`
-   - `vacation_requests`: colunas `id`, `employee_id`, `start_date`, `end_date`, `status`, `reason`, `rejection_reason`, `created_at`, `updated_at`
-5. Verificar índices em **Indexes**:
-   - `idx_employees_manager_id`
-   - `idx_vacation_requests_status_dates`
-   - `idx_vacation_requests_employee_id`
-
-Para parar o PostgreSQL:
-
-```bash
-docker compose down
-```
-
-Para remover também o volume de dados:
-
-```bash
-docker compose down -v
-```
-
-### 3. Endpoints disponíveis
-
-| Recurso          | URL                                      |
-|------------------|------------------------------------------|
-| Health check     | http://localhost:8080/api/health         |
-| Employees        | http://localhost:8080/api/employees      |
-| Vacation Requests| http://localhost:8080/api/vacation-requests |
-| Swagger UI       | http://localhost:8080/swagger-ui.html    |
-| OpenAPI JSON     | http://localhost:8080/v3/api-docs        |
-
-Resposta esperada do health check:
-
-```json
-{
-  "status": "UP",
-  "application": "Vacation Management System"
-}
-```
-
-> Endpoints CRUD exigem o header `X-User-Id`. Veja exemplos curl na seção [Exemplos curl](#exemplos-curl).
-
-### 4. Executar testes
-
-```bash
-cd backend
-mvn test
-```
-
-Inclui testes de integração das regras de negócio (roles, overlap, aprovação, cancelamento).
-
-### Profile Docker (futuro)
-
-Quando o backend rodar dentro do Docker Compose, use o profile `docker`:
-
-```bash
-mvn spring-boot:run -Dspring-boot.run.profiles=docker
-```
-
-O profile `docker` aponta o datasource para o hostname `postgres` (rede interna do Compose).
-
-## Como será executado (futuro)
-
-Após a implementação completa, o projeto será executado via Docker Compose com todos os serviços:
-
-```bash
-docker compose up --build
-```
-
-Serviços previstos:
-
-| Serviço    | Porta  | Descrição                    |
-|------------|--------|------------------------------|
-| backend    | 8080   | API REST Spring Boot         |
-| frontend   | 5173   | SPA React (Vite dev server)  |
-| postgres   | 5432   | Banco de dados PostgreSQL    |
-
-As migrations Flyway são aplicadas automaticamente na inicialização do backend.
-
-## Documentação adicional
-
-Consulte a pasta `docs/` para detalhes de arquitetura, modelo de dados, diagramas e estratégia Git.
 
 ---
 
-# UML Architecture & System Design
-
-Antes de iniciar a implementação do backend, foi conduzido um processo formal de modelagem UML utilizando **Astah UML**, com o objetivo de transformar o enunciado do teste técnico da LBC em uma arquitetura orientada a domínio antes da escrita de qualquer linha de código.
-
-Essa etapa de design garantiu que as entidades, relacionamentos e regras de negócio estivessem claramente definidos e validados previamente, reduzindo retrabalho e orientando uma separação de responsabilidades consistente entre as camadas da aplicação.
-
-O modelo UML foi utilizado para:
-
-- **Modelar antes de codificar** — o diagrama foi criado antes da implementação, servindo como contrato visual da solução.
-- **Identificar as entidades principais** — `Employee` e `VacationRequest`, com seus atributos e enums.
-- **Validar as regras de negócio** — unicidade de e-mail, hierarquia de manager, validação de datas inclusivas e regra global de sobreposição (overlap).
-- **Definir responsabilidades entre camadas** — Controller, Service, Repository, Mapper e Domain, evitando vazamento de lógica entre camadas.
-- **Documentar o sistema profissionalmente** — produzindo artefatos de arquitetura reutilizáveis para onboarding e revisão técnica.
-
-## Domain Model
-
-O núcleo do sistema é composto por duas entidades de domínio principais.
-
-### Employee
-
-Representa um colaborador do sistema.
-
-**Atributos:**
-
-| Atributo    | Descrição                                  |
-|-------------|--------------------------------------------|
-| `id`        | Identificador único (UUID)                 |
-| `name`      | Nome do colaborador                        |
-| `email`     | E-mail corporativo                         |
-| `role`      | Papel do colaborador no sistema            |
-| `manager`   | Manager direto (também um `Employee`)      |
-| `createdAt` | Data de criação                            |
-| `updatedAt` | Data da última atualização                 |
-
-**Regras:**
-
-- O e-mail deve ser único.
-- Um colaborador pode possuir um manager.
-- O manager também é um `Employee` (auto-relacionamento).
-
-**Roles:**
-
-- `ADMIN`
-- `MANAGER`
-- `COLLABORATOR`
-
-### VacationRequest
-
-Representa um pedido de férias.
-
-**Atributos:**
-
-| Atributo          | Descrição                                  |
-|-------------------|--------------------------------------------|
-| `id`              | Identificador único (UUID)                 |
-| `employee`        | Colaborador solicitante                    |
-| `startDate`       | Data de início (inclusiva)                 |
-| `endDate`         | Data de fim (inclusiva)                    |
-| `status`          | Situação atual do pedido                   |
-| `reason`          | Justificativa do pedido                    |
-| `rejectionReason` | Motivo da rejeição (quando aplicável)      |
-| `createdAt`       | Data de criação                            |
-| `updatedAt`       | Data da última atualização                 |
-
-**Status:**
-
-- `PENDING`
-- `APPROVED`
-- `REJECTED`
-- `CANCELLED`
-
-**Regras:**
-
-- Deve possuir um colaborador associado.
-- A data inicial deve ser menor ou igual à data final (`startDate <= endDate`).
-- Não permite sobreposição com pedidos ativos (`PENDING` ou `APPROVED`).
-- Pode ser aprovado.
-- Pode ser rejeitado.
-- Pode ser cancelado.
-
-## Main Relationship
-
-### Employee (1) — (\*) VacationRequest
-
-```
-Employee (1) -------- (*) VacationRequest
-```
-
-- Um colaborador pode possuir vários pedidos de férias.
-- Um pedido de férias pertence a apenas um colaborador.
-
-### Employee como Manager (1) — (\*) Employee
-
-```
-Employee (Manager) (1) -------- (*) Employee
-```
-
-- Um manager pode gerir vários colaboradores.
-- Um colaborador possui apenas um manager.
-
-## Architecture Layers
-
-A aplicação adota uma arquitetura em camadas com responsabilidades bem definidas.
-
-### Controller Layer
-
-Responsável por:
-
-- Receber requisições HTTP.
-- Validar a entrada.
-- Delegar o processamento para os Services.
-- Retornar respostas REST.
-
-**Classes:**
-
-- `EmployeeController`
-- `VacationRequestController`
-
-### Service Layer
-
-Responsável por:
-
-- Regras de negócio.
-- Validações.
-- Controle de permissões.
-- Aprovação/rejeição de férias.
-- Verificação de conflitos (overlap global).
-
-**Classes:**
-
-- `EmployeeService`
-- `VacationRequestService`
-- `CurrentUserService`
-
-### Repository Layer
-
-Responsável por:
-
-- Persistência.
-- Consultas.
-- Acesso ao banco de dados.
-
-**Classes:**
-
-- `EmployeeRepository`
-- `VacationRequestRepository`
-
-### Mapper Layer
-
-Responsável por:
-
-- Conversão Entity ⇄ DTO.
-
-**Classes:**
-
-- `EmployeeMapper`
-- `VacationRequestMapper`
-
-## UML Diagrams
-
-Os diagramas a seguir foram gerados no **Astah UML** e representam fielmente a arquitetura implementada no backend.
-
-### 1. Complete Backend Architecture
-
-![Complete Backend Architecture](docs/uml/complete-backend-architecture.png)
-
-Visão geral da arquitetura do sistema, evidenciando a colaboração entre as camadas. O `EmployeeController` delega ao `EmployeeService`, que coordena `EmployeeRepository`, `EmployeeMapper` e `CurrentUserService` para aplicar regras de negócio e autorização. Os mappers (`EmployeeMapper` e `VacationRequestMapper`) isolam a conversão entre entidades de domínio e DTOs, enquanto o `CurrentUserService` centraliza a resolução do usuário autenticado via header `X-User-Id`. O diagrama consolida Controllers, Services, Repositories, Mappers, Domain Model, Enums e seus relacionamentos em uma única visão.
-
-### 2. Employee Module
-
-![Employee Module](docs/uml/employee-module.png)
-
-Módulo responsável pela gestão de colaboradores e pela hierarquia de managers. As classes envolvidas são:
-
-- **`EmployeeController`** — expõe os endpoints REST de colaboradores (`POST`, `GET`, `PUT`, `DELETE`).
-- **`EmployeeService`** — concentra as regras administrativas: restrição de escrita a `ADMIN` (`requireAdmin`), unicidade de e-mail (`validateEmailUnique`), resolução e validação de manager (`resolveManager`) e bloqueio de remoção quando há pedidos associados.
-- **`EmployeeRepository`** — interface `JpaRepository<Employee, UUID>` com consultas por e-mail e por manager.
-- **`EmployeeMapper`** — converte `Employee` em `EmployeeResponse`/`EmployeeSummaryResponse` e aplica os dados dos DTOs de entrada.
-- **`CurrentUserService`** — fornece o colaborador autenticado e sua `Role` para as decisões de permissão.
-
-### 3. Vacation Request Module
-
-![Vacation Request Module](docs/uml/vacation-request-module.png)
-
-Módulo responsável pelo ciclo de vida dos pedidos de férias. As classes envolvidas são:
-
-- **`VacationRequestController`** — expõe os endpoints de criação, listagem, edição e as transições de status (`approve`, `reject`, `cancel`).
-- **`VacationRequestService`** — implementa as regras de negócio: criação conforme a role, validação de datas inclusivas, aprovação/rejeição por `ADMIN` ou pelo manager direto, cancelamento de pedidos `PENDING` ou `APPROVED` e a verificação de sobreposição global.
-- **`VacationRequestRepository`** — interface `JpaRepository<VacationRequest, UUID>` cuja query `existsOverlapping` / `existsActiveOverlap` valida a regra principal do sistema: **não permitir férias sobrepostas em pedidos com status `PENDING` ou `APPROVED`**.
-- **`VacationRequestMapper`** — converte entre `VacationRequest` e os DTOs correspondentes.
-
-### 4. Domain Model
-
-![Domain Model](docs/uml/domain-model.png)
-
-Modelo de domínio do sistema, com as entidades, enums e relacionamentos:
-
-- **`Employee`** — colaborador do sistema (e-mail único, possível manager que também é um `Employee`).
-- **`VacationRequest`** — pedido de férias vinculado a um colaborador, com datas inclusivas e proteção contra sobreposição.
-- **`Role`** — enum com `ADMIN`, `MANAGER` e `COLLABORATOR`.
-- **`VacationStatus`** — enum com `PENDING`, `APPROVED`, `REJECTED` e `CANCELLED`.
-
-**Relacionamentos:** `Employee (1) — (*) VacationRequest` (um colaborador possui vários pedidos; cada pedido pertence a um único colaborador) e o auto-relacionamento `Employee (Manager) (1) — (*) Employee` (um manager gere vários colaboradores; cada colaborador possui no máximo um manager).
-
-## Astah UML Source File
-
-O diagrama UML completo encontra-se disponível para consulta:
-
-[Astah UML — Complete Diagram (Google Drive)](https://drive.google.com/file/d/1pKdnrIwN7XbSfTA4OpBkPPr-CldUPdyD/view?usp=sharing)
-
-> The UML diagrams were created before implementation as part of the software architecture and domain modeling process.
+## 14. Funcionalidades
+
+### Backend
+
+- CRUD de colaboradores com hierarquia de managers (auto-relacionamento).
+- Ciclo de vida completo de pedidos de férias: criar, listar, ver, editar, aprovar, rejeitar e cancelar.
+- **Regra de sobreposição global** entre pedidos `PENDING`/`APPROVED` (datas inclusivas).
+- Controlo de acesso por perfil (ADMIN, MANAGER, COLLABORATOR).
+- Autenticação simulada via `X-User-Id` (`CurrentUserService`).
+- Tratamento global de erros (400, 403, 404, 409).
+- Documentação Swagger / OpenAPI.
+
+### Frontend (interface em Português de Portugal)
+
+- **Painel** — cartões de métricas (total de colaboradores, pedidos por estado), resumo "Pedidos por Estado", gráfico "Pedidos por Mês" e "Últimos Pedidos", com dados reais da API.
+- **Colaboradores** — listagem e CRUD completo.
+- **Pedidos de Férias** — listagem e CRUD, com aprovação, rejeição (com motivo) e cancelamento, respeitando permissões.
+- **Relatórios** — filtros (datas, colaborador, estado), cartões de resumo, tabela com ordenação/paginação e **exportação CSV** (gerada nativamente).
+- **Configurações** — página informativa (sistema, utilizador ativo, perfis, regras de negócio, estado da aplicação).
+- **Centro de Notificações** — sino na Topbar com notificações derivadas dos pedidos e estado lido/não lido persistido em `localStorage`.
+- **Seletor de Utilizador Ativo** — alterna entre os utilizadores de teste, atualizando o header `X-User-Id`.
 
 ---
 
-## UX/UI Design
+## 15. Segurança
 
-Antes de iniciar a implementação do frontend, foi conduzida uma etapa de **UX/UI Design** no **Figma**, com a criação de um protótipo interativo e de um arquivo de design que serve como referência visual para a construção das telas.
+> **Nota de transparência:** o projeto **não implementa** autenticação real (sem JWT, sem OAuth, sem sessões).
 
-Essa fase teve como objetivo definir o **design system** (cores, tipografia, componentes e espaçamentos), validar os fluxos de navegação e alinhar a experiência do utilizador antes da escrita do código, garantindo consistência visual e reduzindo retrabalho durante o desenvolvimento.
+- A identidade do utilizador é **simulada** através do header HTTP `X-User-Id: <employee-uuid>`, resolvido pelo `CurrentUserService`.
+- A **autorização por perfil** (ADMIN, MANAGER, COLLABORATOR) é aplicada na camada de serviço.
+- O **CORS** está configurado de forma global (`CorsConfig`), autorizando as origens `https://projeto-lbc.vercel.app` e `http://localhost:5173`, os métodos GET, POST, PUT, DELETE, PATCH, OPTIONS, todos os headers e credenciais.
+- Os **erros** são padronizados, evitando exposição de detalhes internos.
 
-### Interactive Prototype
+Utilizadores de teste (criados pela migration `V2__seed_test_users.sql`):
 
-Protótipo navegável que simula a experiência final da aplicação:
+| Perfil | Nome | Email | ID |
+|--------|------|-------|----|
+| ADMIN | Admin User | admin@lbc.com | `11111111-1111-1111-1111-111111111111` |
+| MANAGER | Manager User | manager@lbc.com | `22222222-2222-2222-2222-222222222222` |
+| COLLABORATOR | Collaborator User | collaborator@lbc.com | `33333333-3333-3333-3333-333333333333` |
 
-[https://upper-pure-41012202.figma.site/](https://upper-pure-41012202.figma.site/)
+---
 
-### Figma Design File
+## 16. Deploy
 
-Arquivo de design com telas, componentes e especificações visuais:
+| Componente | Plataforma |
+|------------|------------|
+| Frontend | **Vercel** — https://projeto-lbc.vercel.app |
+| Backend | **Render** (imagem Docker) — https://projetolbc-backend.onrender.com |
+| Base de Dados | **Render PostgreSQL** |
+| Imagem Backend | **Docker Hub** — `williamsartijose182/projetolbc-backend` |
+| Imagem Frontend | **Docker Hub** — `williamsartijose182/projetolbc-frontend` |
 
-[https://www.figma.com/design/MziEDJuxHJBGJm0fzJ6BpF/Untitled?node-id=1-1432&t=WiT40MWARHQSK7vi-1](https://www.figma.com/design/MziEDJuxHJBGJm0fzJ6BpF/Untitled?node-id=1-1432&t=WiT40MWARHQSK7vi-1)
+O backend no Render é configurado por variáveis de ambiente padrão do Spring Boot: `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` (a apontar para o PostgreSQL gerido pelo Render).
 
-O frontend será implementado em **React + Vite** seguindo fielmente este design system, com a interface em **Português de Portugal**. O protótipo e o arquivo de design orientam a estrutura de componentes, a hierarquia visual e os padrões de interação adotados nas telas de gestão de colaboradores e de pedidos de férias.
+---
+
+## 17. Roadmap
+
+Com base no estado atual do projeto:
+
+- [x] Documentação técnica e modelação UML
+- [x] Backend: domínio, migrations Flyway e repositories
+- [x] Backend: DTOs, mappers, tratamento de erros e autenticação simulada
+- [x] Backend: services, controllers e regras de negócio
+- [x] Frontend: Painel, Colaboradores, Pedidos de Férias, Relatórios e Configurações
+- [x] Frontend: centro de notificações
+- [x] Dockerização (backend + frontend + PostgreSQL)
+- [x] Deploy em produção (Vercel + Render + Docker Hub)
+- [ ] Autenticação real (substituir a simulação por `X-User-Id`)
+- [ ] Cobertura de testes do frontend
+
+---
+
+## 18. Contribuição
+
+Contribuições são bem-vindas. Fluxo sugerido:
+
+1. Faça *fork* do repositório.
+2. Crie uma branch: `git checkout -b feat/minha-feature`.
+3. Faça commits seguindo **Conventional Commits** (ver `docs/GIT_STRATEGY.md`).
+4. Garanta que o build passa (`mvn test` no backend e `npm run build` no frontend).
+5. Abra um *Pull Request* descrevendo as alterações.
+
+---
+
+## 19. Licença
+
+Não existe atualmente um ficheiro de licença (`LICENSE`) definido no repositório.
+
+---
+
+<div align="center">
+
+**ProjetoLBC** — Sistema de Gestão de Férias · Java 21 · Spring Boot 3 · React + Vite · PostgreSQL · Docker
+
+</div>
