@@ -1,19 +1,17 @@
 import AppBar from '@mui/material/AppBar';
 import Avatar from '@mui/material/Avatar';
-import Badge from '@mui/material/Badge';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import Toolbar from '@mui/material/Toolbar';
-import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
-import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
 import { SIDEBAR_WIDTH } from './Sidebar';
 import { useCurrentUser } from '../context/CurrentUserContext';
+import NotificationsMenu from '../components/notifications/NotificationsMenu';
 
 interface TopbarProps {
   onMenuClick: () => void;
@@ -64,13 +62,7 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
 
         <Box sx={{ flexGrow: 1 }} />
 
-        <Tooltip title="Notificações">
-          <IconButton aria-label="notificações" sx={{ color: 'text.secondary' }}>
-            <Badge color="error" variant="dot">
-              <NotificationsNoneOutlinedIcon />
-            </Badge>
-          </IconButton>
-        </Tooltip>
+        <NotificationsMenu />
 
         <TextField
           select
