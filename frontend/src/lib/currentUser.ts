@@ -3,6 +3,7 @@ export const CURRENT_USER_STORAGE_KEY = 'currentUserId';
 export interface SeededUser {
   id: string;
   name: string;
+  email: string;
   role: 'ADMIN' | 'MANAGER' | 'COLLABORATOR';
   initials: string;
 }
@@ -15,18 +16,21 @@ export const SEEDED_USERS: SeededUser[] = [
   {
     id: '11111111-1111-1111-1111-111111111111',
     name: 'Admin User',
+    email: 'admin@lbc.com',
     role: 'ADMIN',
     initials: 'AU',
   },
   {
     id: '22222222-2222-2222-2222-222222222222',
     name: 'Manager User',
+    email: 'manager@lbc.com',
     role: 'MANAGER',
     initials: 'MU',
   },
   {
     id: '33333333-3333-3333-3333-333333333333',
     name: 'Collaborator User',
+    email: 'collaborator@lbc.com',
     role: 'COLLABORATOR',
     initials: 'CU',
   },
