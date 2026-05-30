@@ -63,6 +63,47 @@ Equipas de Recursos Humanos, managers e colaboradores que necessitam de um fluxo
 
 ---
 
+## 🎥 Demonstração em Vídeo
+
+Além da versão online, o projeto possui vídeos demonstrando os principais fluxos da aplicação.
+
+### 🖥️ Frontend - React Application
+
+Demonstração da aplicação web desenvolvida em React + TypeScript.
+
+Inclui:
+
+- Navegação pela aplicação
+- Gestão de colaboradores
+- Formulários
+- Integração com API REST
+- Interface responsiva
+
+📹 Assistir demonstração:
+
+[Frontend Demo](./docs/Videos/front%20end.mp4)
+
+---
+
+### 🔥 Backend - API REST + Postman
+
+Demonstração dos testes dos endpoints da API utilizando Postman.
+
+Inclui:
+
+- Testes HTTP
+- CRUD de colaboradores
+- Gestão de pedidos de férias
+- Fluxos de aprovação
+- Regras de negócio
+- Respostas da API
+
+📹 Assistir demonstração:
+
+[Postman API Demo](./docs/Videos/Cen%C3%A1rio%20de%20Teste%20Postman%20-%20ProjetoLBC%20.mp4)
+
+---
+
 ## 3. Tecnologias
 
 | Camada | Tecnologias |
