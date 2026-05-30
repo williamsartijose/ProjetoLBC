@@ -8,15 +8,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class CorsConfig implements WebMvcConfigurer {
 
     private static final String[] ALLOWED_ORIGINS = {
+            "https://projeto-lbc.vercel.app",
             "http://localhost:5173"
     };
 
     private static final String[] ALLOWED_METHODS = {
-            "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
-    };
-
-    private static final String[] ALLOWED_HEADERS = {
-            "Content-Type", "Authorization", "X-User-Id"
+            "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
     };
 
     @Override
@@ -24,7 +21,7 @@ public class CorsConfig implements WebMvcConfigurer {
         registry.addMapping("/api/**")
                 .allowedOrigins(ALLOWED_ORIGINS)
                 .allowedMethods(ALLOWED_METHODS)
-                .allowedHeaders(ALLOWED_HEADERS)
+                .allowedHeaders("*")
                 .allowCredentials(true)
                 .maxAge(3600);
     }
