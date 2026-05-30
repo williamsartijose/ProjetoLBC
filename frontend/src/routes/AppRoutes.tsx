@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from '../layout/MainLayout';
 import PainelPage from '../pages/PainelPage';
 import ColaboradoresPage from '../pages/ColaboradoresPage';
@@ -12,6 +12,7 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route element={<MainLayout />}>
+        <Route index element={<Navigate to={ROUTES.painel} replace />} />
         <Route path={ROUTES.painel} element={<PainelPage />} />
         <Route path={ROUTES.colaboradores} element={<ColaboradoresPage />} />
         <Route path={ROUTES.pedidosFerias} element={<PedidosFeriasPage />} />

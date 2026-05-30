@@ -1,5 +1,5 @@
 export const ROUTES = {
-  painel: '/',
+  painel: '/painel',
   colaboradores: '/colaboradores',
   pedidosFerias: '/pedidos-ferias',
   relatorios: '/relatorios',

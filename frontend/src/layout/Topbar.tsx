@@ -1,11 +1,17 @@
 import AppBar from '@mui/material/AppBar';
 import Avatar from '@mui/material/Avatar';
+import Badge from '@mui/material/Badge';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import Toolbar from '@mui/material/Toolbar';
+import Tooltip from '@mui/material/Tooltip';
+import Typography from '@mui/material/Typography';
 import MenuIcon from '@mui/icons-material/Menu';
+import SearchIcon from '@mui/icons-material/Search';
+import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
 import { SIDEBAR_WIDTH } from './Sidebar';
 import { useCurrentUser } from '../context/CurrentUserContext';
 
@@ -27,7 +33,7 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
         bgcolor: 'background.paper',
       }}
     >
-      <Toolbar sx={{ gap: 2 }}>
+      <Toolbar sx={{ gap: { xs: 1, sm: 2 }, minHeight: 72 }}>
         <IconButton
           color="inherit"
           aria-label="abrir menu"
@@ -38,7 +44,33 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
           <MenuIcon />
         </IconButton>
 
+        <TextField
+          size="small"
+          placeholder="Pesquisar..."
+          aria-label="pesquisar"
+          sx={{
+            width: { xs: '100%', sm: 280 },
+            maxWidth: 360,
+            '& .MuiOutlinedInput-root': { bgcolor: 'background.default' },
+          }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon fontSize="small" color="disabled" />
+              </InputAdornment>
+            ),
+          }}
+        />
+
         <Box sx={{ flexGrow: 1 }} />
+
+        <Tooltip title="Notificações">
+          <IconButton aria-label="notificações" sx={{ color: 'text.secondary' }}>
+            <Badge color="error" variant="dot">
+              <NotificationsNoneOutlinedIcon />
+            </Badge>
+          </IconButton>
+        </Tooltip>
 
         <TextField
           select
@@ -46,7 +78,7 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
           label="Utilizador Ativo"
           value={currentUserId}
           onChange={(event) => setCurrentUserId(event.target.value)}
-          sx={{ minWidth: 220 }}
+          sx={{ minWidth: { xs: 150, sm: 220 } }}
         >
           {users.map((user) => (
             <MenuItem key={user.id} value={user.id}>
@@ -55,7 +87,17 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
           ))}
         </TextField>
 
-        <Avatar sx={{ bgcolor: 'primary.main' }}>{currentUser?.initials ?? '?'}</Avatar>
+        <Box sx={{ textAlign: 'right', display: { xs: 'none', md: 'block' } }}>
+          <Typography variant="body2" fontWeight={600} noWrap>
+            {currentUser?.name ?? '—'}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {currentUser?.role ?? ''}
+          </Typography>
+        </Box>
+        <Avatar sx={{ bgcolor: 'primary.main', width: 40, height: 40 }}>
+          {currentUser?.initials ?? '?'}
+        </Avatar>
       </Toolbar>
     </AppBar>
   );
