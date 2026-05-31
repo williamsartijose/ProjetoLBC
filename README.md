@@ -65,42 +65,41 @@ Equipas de Recursos Humanos, managers e colaboradores que necessitam de um fluxo
 
 ## 🎥 Demonstração em Vídeo
 
-Além da versão online, o projeto possui vídeos demonstrando os principais fluxos da aplicação.
+Além da versão online, o projeto possui demonstrações visuais dos principais fluxos da aplicação.
 
 ### 🖥️ Frontend - React Application
 
-Demonstração da aplicação web desenvolvida em React + TypeScript.
+Aplicação web desenvolvida com React + TypeScript + Material UI consumindo API REST Spring Boot.
 
-Inclui:
+Demonstra:
 
-- Navegação pela aplicação
+- Interface da aplicação
 - Gestão de colaboradores
 - Formulários
-- Integração com API REST
-- Interface responsiva
+- Comunicação com backend
+- Fluxo completo do utilizador
 
-📹 Assistir demonstração:
+![Frontend Demo](./docs/Videos/front%20end.gif)
 
-[Frontend Demo](./docs/Videos/front%20end.mp4)
+▶️ [Ver vídeo completo](./docs/Videos/front%20end.mp4)
 
 ---
 
 ### 🔥 Backend - API REST + Postman
 
-Demonstração dos testes dos endpoints da API utilizando Postman.
+Testes da API REST desenvolvida em Java + Spring Boot utilizando Postman.
 
-Inclui:
+Demonstra:
 
-- Testes HTTP
+- Endpoints HTTP
 - CRUD de colaboradores
 - Gestão de pedidos de férias
-- Fluxos de aprovação
+- Aprovação e cancelamento
 - Regras de negócio
-- Respostas da API
 
-📹 Assistir demonstração:
+![Postman API Demo](./docs/Videos/Cen%C3%A1rio%20de%20Teste%20Postman%20-%20ProjetoLBC.gif)
 
-[Postman API Demo](./docs/Videos/Cen%C3%A1rio%20de%20Teste%20Postman%20-%20ProjetoLBC%20.mp4)
+▶️ [Ver vídeo completo](./docs/Videos/Cen%C3%A1rio%20de%20Teste%20Postman%20-%20ProjetoLBC%20.mp4)
 
 ---
 
